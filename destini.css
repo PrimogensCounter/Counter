@@ -1,0 +1,140 @@
+﻿/* --- BASE --- */
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    margin: 1em 2em;
+    background: linear-gradient(to bottom, #2b2f3a, #1f232b); /* scuro ma non nero */
+    color: #d3d7dd; /* grigio chiaro, meno contrasto del bianco */
+    line-height: 1.3em;
+}
+
+/* --- TITOLI --- */
+h1 {
+    color: #d6b370; /* dorato più caldo */
+    text-shadow: 0 0 6px rgba(0,0,0,0.5);
+    font-size: 2em;
+    margin-bottom: 0.4em;
+}
+
+h2, h3 {
+    color: #e0e0e0;
+    margin-top: 0.7em;
+    margin-bottom: 0.4em;
+    border-bottom: 1px solid rgba(214,179,112,0.2);
+    padding-bottom: 2px;
+}
+
+/* --- TABELLA PATCH --- */
+#tabellaPatch {
+    border-collapse: collapse;
+    width: auto;
+    background: #2f3542;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.8em;
+    color: #d3d7dd;
+}
+
+    #tabellaPatch th, #tabellaPatch td {
+        border: 1px solid #444c59;
+        padding: 6px 8px;
+        text-align: center;
+        height: 22px;
+    }
+
+    #tabellaPatch th {
+        background-color: #3c4455;
+        color: #e0e0e0;
+        font-weight: bold;
+    }
+
+/* --- TABELLE GENERALI --- */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 0.8em;
+    background: #2f3542;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 0.9em;
+    color: #d3d7dd;
+}
+
+th, td {
+    border: 1px solid #444c59;
+    padding: 8px;
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background: #383f4d;
+}
+
+/* --- INPUT E BUTTON --- */
+input[type="number"], input[type="date"] {
+    padding: 0.3em 0.5em;
+    font-size: 0.9em;
+    border: 1px solid #5c6678;
+    border-radius: 8px;
+    background: #232832;
+    color: #d3d7dd;
+}
+
+button {
+    margin-left: 0.4em;
+    padding: 0.5em 1.2em;
+    font-size: 0.9em;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(to right, #4a5568, #5e6a82);
+    color: #eaeaea; /* non bianco puro */
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+    button:hover {
+        background: linear-gradient(to right, #5e6a82, #4a5568);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    }
+
+/* --- SEZIONI --- */
+#riepilogoPatch {
+    margin-top: 0.5em;
+    font-size: 1em;
+    color: #ccc;
+}
+
+#totaleGenerale {
+    margin-top: 0.5em;
+    font-weight: bold;
+    font-size: 1.1em;
+    color: #d6b370;
+}
+
+/* --- CELLE CLICCABILI --- */
+.clickClasse, .clickSottoclasse {
+    cursor: pointer;
+    background: #3a4250;
+    border: 1px solid #5c6678;
+    border-radius: 6px;
+}
+
+    .clickClasse:hover, .clickSottoclasse:hover {
+        background: #505a6b;
+        box-shadow: 0 0 8px rgba(214,179,112,0.4);
+        color: #fff;
+    }
+
+/* --- SPACING GENERALE --- */
+#simulazioneContainer label {
+    margin-right: 0.5em;
+}
+
+#analisiDestini5Star, #analisiArmiFiltrate {
+    margin-top: 0.8em;
+}

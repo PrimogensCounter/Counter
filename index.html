@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <title>Calcolatore Primogems</title>
+    <link rel="stylesheet" href="destini.css" />
+</head>
+<body>
+    <h1>Calcolatore Primogems</h1>
+
+    <div id="topContainer">
+        <div style="margin-bottom:1em;">
+            <div>
+  <label>📅 Data inizio:</label>
+  <input type="date" id="dataInizio" />
+</div>
+
+<div>
+  <label>📅 Data fine:</label>
+  <input type="date" id="dataTarget" />
+</div>
+
+            &nbsp;&nbsp;
+            <button onclick="aggiornaCalcolo()">Calcola</button>
+        </div>
+
+        <table id="tabellaPatch">
+            <thead>
+                <tr>
+                    <th>Patch</th>
+                    <th>Fase 1 inizio</th>
+                    <th>Fase 2 inizio</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Riempito da JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="riepilogoPatch" style="margin-bottom:1em;"></div>
+    <div id="risultato"></div>
+
+    <div id="extraInputs" style="margin-top: 1em;">
+        <label for="destiniExtra">Destini extra:</label>
+        <input type="number" id="destiniExtra" value="0" min="0" style="width:80px;">
+        &nbsp;&nbsp;&nbsp;
+        <label for="primoExtra">Primogem extra:</label>
+        <input type="number" id="primoExtra" value="0" min="0" style="width:80px;">
+        <br>
+        <label>
+        ✨ Destini pregressi:
+        <input type="number" id="destiniPregressi" min="0" value="0" onchange="aggiornaCalcolo()" style="width: 60px;" />
+        </label>
+        &nbsp;&nbsp;&nbsp;
+        <label>
+            🎯 Pity:
+            <input type="number" id="pity" min="0" value="0" style="width: 60px;" onchange="aggiornaCalcolo()" />
+        </label>
+    </div>
+
+    <div id="totaleGenerale"></div>
+
+    <div id="simulazioneContainer" style="margin-top: 2em;">
+        <h2>Simulazione Pull 5★</h2>
+
+        <label>
+            🎯 Personaggi desiderati:
+            <input type="number" id="simPersonaggi" value="0" min="0" style="width:60px;" />
+        </label>
+        &nbsp;&nbsp;
+        <label>
+            ⚔️ Armi desiderate:
+            <input type="number" id="simArmi" value="0" min="0" style="width:60px;" />
+        </label>
+        &nbsp;&nbsp;
+        <label>
+            🔁 Numero simulazioni:
+            <input type="number" id="numSim" value="1000" min="100" step="100" style="width:80px;" />
+        </label>
+        &nbsp;&nbsp;
+        <label>
+            <input type="checkbox" id="primoGarantito" />
+            🎯 Personaggio garantito
+        </label>
+        &nbsp;&nbsp;
+        <button onclick="simulaPull()">Simula</button>
+
+        <!-- Risultati generali -->
+        <div id="risultatoPersonaggi" style="margin-top:1em;"></div>
+        <div id="risultatoArmi" style="margin-top:1em;"></div>
+
+        <!-- Tabella classi interattiva -->
+        <div id="analisiDestini5Star" style="margin-top:1em;"></div>
+
+        <!-- Dettaglio armi filtrate -->
+        <div id="analisiArmiFiltrate" style="margin-top:1em;"></div>
+    </div>
+
+    <script src="fontiPrimo.js"></script>
+    <script src="destini.js"></script>
+
+    <script>
+        // Imposta automaticamente la data odierna su "dataInizio"
+        window.addEventListener("load", () => {
+            const oggi = new Date();
+            const formatted = oggi.toISOString().split('T')[0];
+            const dataInizio = document.getElementById("dataInizio");
+            if(dataInizio) dataInizio.value = formatted;
+        });
+    </script>
+</body>
+</html>
