@@ -331,25 +331,33 @@ function aggiornaCalcolo() {
             let occorrenze = statoCheckbox ? 1 : 0;
             let totalePrimo = 0;
             if (occorrenze > 0) {
-                const giorniPassati = Math.floor((dataFine - tuttePatch[0].inizioFase1) / (1000*60*60*24));
+                const giorniPassati = Math.floor((dataFine - dataInizio) / (1000 * 60 * 60 * 24));
                 const bonusOgni30 = Math.floor(giorniPassati / 30);
-                totalePrimo = fonte.primo * occorrenze + bonusOgni30 * 300;
+
+                // valore inserito dall’utente
+                const cristalliPosseduti = parseInt(valoreInput) || 0;
+
+                totalePrimo = cristalliPosseduti + bonusOgni30 * 300;
             }
             totalePrimoGenerale += totalePrimo;
             const destini = Math.floor(totalePrimo / 160);
+
+            // HTML per checkbox + input
             let checkboxHtml = fonte.checkbox ? `<input type="checkbox" id="cb_${nomeId}" ${statoCheckbox ? "checked" : ""}>` : "";
+            let inputHtml = `<input type="number" id="valore_${nomeId}" value="${valoreInput}" min="0" style="width:80px;">`;
             const infoHtml = fonte.info || "";
+
             htmlTabella += `
-                <tr>
-                    <td>${nome}</td>
-                    <td>${fonte.primo}</td>
-                    <td>${occorrenze}</td>
-                    <td>${totalePrimo}</td>
-                    <td>${destini}</td>
-                    <td>${checkboxHtml}</td>
-                    <td>${infoHtml}</td>
-                </tr>
-            `;
+        <tr>
+            <td>${nome}</td>
+            <td>-</td>
+            <td>${occorrenze}</td>
+            <td>${totalePrimo}</td>
+            <td>${destini}</td>
+            <td>${checkboxHtml}</td>
+            <td>${inputHtml} ${infoHtml}</td>
+        </tr>
+    `;
             continue;
         }
 

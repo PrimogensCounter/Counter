@@ -110,10 +110,12 @@ const fontiPrimo = {
         info: "Generalmente 1 ogni patch, ma può variare",
     },
     "Cristalli": {
-        primo: 2329,
+        primo: 0, // non serve più un valore fisso
         checkbox: true,
-        info: "Spunta se acquistato",
+        valore: true, // permette di avere l’input number
+        info: "Inserisci i cristalli che possiedi"
     },
+
     "Personaggi 4 stelle doppi": {
         primo: 6.4,
         valore: true,
