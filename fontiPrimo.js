@@ -4,7 +4,7 @@ const fontiPrimo = {
         frequenza: "daily",
         info: "10 primo per ogni missione giornaliera + 20 primo",
     },
-    "Blessing moon": {
+    "Welkin Moon": {
         primo: 90,
         frequenza: "daily",
         checkbox: true,
@@ -123,3 +123,4 @@ const fontiPrimo = {
         info: "Inserisci il numero di totale di destini",
     },
 }
+
