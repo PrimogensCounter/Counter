@@ -12,7 +12,7 @@ const fontiPrimo = {
         info: "Spunta se acquistato"
     },
     "Evento grande": {
-        primo: 1240,
+        primo: 960,
         frequenza: 1,
         checkbox: true,
         info: "spunta se l'hai già fatto in questa fase",
@@ -123,4 +123,5 @@ const fontiPrimo = {
         info: "Inserisci il numero di totale di destini",
     },
 }
+
 
