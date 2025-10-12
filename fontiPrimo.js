@@ -26,7 +26,7 @@ const fontiPrimo = {
         fase: [1, 2]
     },
     "Teatro immaginario": {
-        primo: 800,
+        primo: 1000,
         frequenza: 1,
         giornoMese: 1,
         info: "si aggiorna ogni primo del mese",
@@ -123,5 +123,6 @@ const fontiPrimo = {
         info: "Inserisci il numero di totale di destini",
     },
 }
+
 
 
