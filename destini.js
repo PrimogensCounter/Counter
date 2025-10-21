@@ -394,7 +394,13 @@ function aggiornaCalcolo() {
             if(fonte.info?.toLowerCase().includes("acquistato") && !statoCheckbox) occorrenze=0;
         }
 
-        const totalePrimo = occorrenze * fonte.primo;
+        let totalePrimo = occorrenze * fonte.primo;
+
+// 🔹 Bonus extra per Missioni Archon
+if (nome === "Missioni Archon") {
+    const bonusArchon = Math.floor(occorrenze / 2) * 500;
+    totalePrimo += bonusArchon;
+}
         totalePrimoGenerale += totalePrimo;
         const destini = Math.floor(totalePrimo / 160);
 
@@ -838,3 +844,4 @@ function filtraArmiPerSottoclasse(start, end, stars) {
     );
     mostraArmiFiltrate(sims, `Classe ${start}-${end} - #5★ ${stars}`);
 }
+
