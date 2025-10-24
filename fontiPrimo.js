@@ -4,7 +4,7 @@ const fontiPrimo = {
         frequenza: "daily",
         info: "10 primo per ogni missione giornaliera + 20 primo",
     },
-    "Welkin Moon": {
+    "Blessing moon": {
         primo: 90,
         frequenza: "daily",
         checkbox: true,
@@ -12,7 +12,7 @@ const fontiPrimo = {
         info: "Spunta se acquistato"
     },
     "Evento grande": {
-        primo: 960,
+        primo: 1240,
         frequenza: 1,
         checkbox: true,
         info: "spunta se l'hai già fatto in questa fase",
@@ -26,7 +26,7 @@ const fontiPrimo = {
         fase: [1, 2]
     },
     "Teatro immaginario": {
-        primo: 1000,
+        primo: 800,
         frequenza: 1,
         giornoMese: 1,
         info: "si aggiorna ogni primo del mese",
@@ -120,9 +120,7 @@ const fontiPrimo = {
         primo: 6.4,
         valore: true,
         frequenza: 1,
-        info: "Inserisci il numero di totale di destini",
+        info: "Inserisci il numero di frammenti stellari che possiedi",
+        checkbox: true,
     },
 }
-
-
-

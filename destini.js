@@ -250,33 +250,34 @@ function contaIntervalloPatch(startDate, endDate) {
 // FUNZIONE AGGIORNA CALCOLO (AGGIORNATA)
 // =======================
 function aggiornaCalcolo() {
+    if (window.inCalcolo) return;
+    window.inCalcolo = true;
+
     const dataInizioInput = document.getElementById("dataInizio").value;
     const dataTargetInput = document.getElementById("dataTarget").value;
 
     if (!dataInizioInput || !dataTargetInput) {
         alert("Inserisci sia la data di inizio che la data di fine.");
+        window.inCalcolo = false;
         return;
     }
 
     const dataInizio = new Date(dataInizioInput);
     dataInizio.setHours(0, 0, 0, 0);
-
     const dataFine = new Date(dataTargetInput);
     dataFine.setHours(0, 0, 0, 0);
 
     if (dataFine < dataInizio) {
         alert("La data fine deve essere uguale o successiva alla data inizio.");
+        window.inCalcolo = false;
         return;
     }
 
-    // Salvataggio locale
     localStorage.setItem("dataInizioSalvata", dataInizioInput);
     salvaDataLocale(dataTargetInput);
 
-    // Funzione helper aggiornata: calcola giorni totali e patch/fasi
     const { giorniTotali, patchIntere, fasi1, fasi2, giorniResidui } = contaIntervalloPatch(dataInizio, dataFine);
 
-    // Aggiorna riepilogo
     document.getElementById("riepilogoPatch").innerHTML = `
         📦 <u>Riepilogo Patch e Fasi:</u><br>
         Patch intere: <b>${patchIntere}</b><br>
@@ -284,6 +285,7 @@ function aggiornaCalcolo() {
         Fasi 2 totali: <b>${fasi2}</b><br>
         Giorni totali considerati: <b>${giorniTotali}</b>
     `;
+
     const statoCheckboxesSalvati = JSON.parse(localStorage.getItem("checkboxStati") || "{}");
     const valoriInputNumberSalvati = JSON.parse(localStorage.getItem("inputNumberValori") || "{}");
 
@@ -304,16 +306,12 @@ function aggiornaCalcolo() {
             <tbody>
     `;
 
-    // =======================
-    // Date Fase 1 e Evento Ultimo Attivo
-    // =======================
+    // Date fase 1
     const dateFasi1 = [];
     for (let i = 0; i <= patchIntere; i++) {
         const giornoFase1 = new Date(tuttePatch[0].inizioFase1.getTime() + i * msPerPatch);
         giornoFase1.setHours(0, 0, 0, 0);
-        if (giornoFase1 <= dataTarget) {
-            dateFasi1.push(giornoFase1);
-        }
+        if (giornoFase1 <= dataFine) dateFasi1.push(giornoFase1);
     }
 
     const eventoUltimoAttivo = dateFasi1.filter(dataFase1 => {
@@ -321,47 +319,61 @@ function aggiornaCalcolo() {
         return dataInizio < fineValidita;
     }).length;
 
+    // --- Ciclo fonti ---
     for (const [nome, fonte] of Object.entries(fontiPrimo)) {
         const nomeId = nome.replace(/\s+/g, "_");
         let statoCheckbox = fonte.checkbox ? (statoCheckboxesSalvati["cb_" + nomeId] ?? !!fonte.checkboxInclude) : false;
         let valoreInput = fonte.valore ? (valoriInputNumberSalvati["valore_" + nomeId] ?? "0") : "0";
 
-        // Cristalli
         if (nome === "Cristalli") {
             let occorrenze = statoCheckbox ? 1 : 0;
             let totalePrimo = 0;
             if (occorrenze > 0) {
                 const giorniPassati = Math.floor((dataFine - dataInizio) / (1000 * 60 * 60 * 24));
                 const bonusOgni30 = Math.floor(giorniPassati / 30);
-
-                // valore inserito dall’utente
                 const cristalliPosseduti = parseInt(valoreInput) || 0;
-
                 totalePrimo = cristalliPosseduti + bonusOgni30 * 300;
             }
+            totalePrimo = Math.floor(totalePrimo);
             totalePrimoGenerale += totalePrimo;
             const destini = Math.floor(totalePrimo / 160);
-
-            // HTML per checkbox + input
             let checkboxHtml = fonte.checkbox ? `<input type="checkbox" id="cb_${nomeId}" ${statoCheckbox ? "checked" : ""}>` : "";
             let inputHtml = `<input type="number" id="valore_${nomeId}" value="${valoreInput}" min="0" style="width:80px;">`;
             const infoHtml = fonte.info || "";
 
             htmlTabella += `
-        <tr>
-            <td>${nome}</td>
-            <td>-</td>
-            <td>${occorrenze}</td>
-            <td>${totalePrimo}</td>
-            <td>${destini}</td>
-            <td>${checkboxHtml}</td>
-            <td>${inputHtml} ${infoHtml}</td>
-        </tr>
-    `;
+                <tr>
+                    <td>${nome}</td>
+                    <td>-</td>
+                    <td>${occorrenze}</td>
+                    <td>${totalePrimo}</td>
+                    <td>${destini}</td>
+                    <td>${checkboxHtml}</td>
+                    <td>${inputHtml} ${infoHtml}</td>
+                </tr>
+            `;
             continue;
         }
 
-        // Altri casi
+        if (nome === "Personaggi 4 stelle doppi") {
+            const occorrenze = 0, totalePrimo = 0, destini = 0;
+            let checkboxHtml = fonte.checkbox ? `<input type="checkbox" id="cb_${nomeId}" ${statoCheckbox ? "checked" : ""}>` : "";
+            let inputHtml = fonte.valore ? `<input type="number" id="valore_${nomeId}" value="${valoreInput}" min="0" style="width:60px;">` : "";
+            const infoHtml = fonte.info || "";
+            htmlTabella += `
+                <tr>
+                    <td>${nome}</td>
+                    <td>${fonte.primo}</td>
+                    <td>${occorrenze}</td>
+                    <td>${totalePrimo}</td>
+                    <td>${destini}</td>
+                    <td>${checkboxHtml}${inputHtml}</td>
+                    <td>${infoHtml}</td>
+                </tr>
+            `;
+            continue;
+        }
+
         let occorrenze = 0;
         if (fonte.valore) {
             occorrenze = parseInt(valoreInput) || 0;
@@ -370,45 +382,31 @@ function aggiornaCalcolo() {
         } else if (fonte.giornoMese) {
             occorrenze = Array.isArray(fonte.giornoMese)
                 ? fonte.giornoMese.reduce((sum, g) => sum + conteggioPerGiornoMese(g, dataInizio, dataFine), 0)
-                : conteggioPerGiornoMese(fonte.giornoMese, dataInizio, dataFine);        } else if (fonte.fase) {
+                : conteggioPerGiornoMese(fonte.giornoMese, dataInizio, dataFine);
+        } else if (fonte.fase) {
             occorrenze = Array.isArray(fonte.fase)
-                ? fonte.fase.reduce((sum,f) => sum + (f===1?fasi1:fasi2),0)
-                : (fonte.fase===1?fasi1:fasi2);
+                ? fonte.fase.reduce((sum, f) => sum + (f === 1 ? fasi1 : fasi2), 0)
+                : (fonte.fase === 1 ? fasi1 : fasi2);
         } else if (typeof fonte.frequenza === "number") {
-            occorrenze = fonte.frequenza * (patchIntere + (giorniResidui>0?1:0));
+            occorrenze = fonte.frequenza * (patchIntere + (giorniResidui > 0 ? 1 : 0));
         }
 
-        // Missioni del mondo
-        if (nome==="Missioni del mondo") {
-            const inputExplorazione = document.getElementById("valore_Esplorazione_mondo");
-            if(inputExplorazione){
-                occorrenze = parseInt(inputExplorazione.value||"0");
-                const inputMissioniMondo = document.getElementById("valore_"+nomeId);
-                if(inputMissioniMondo) inputMissioniMondo.value = occorrenze;
-            }
+        if (fonte.checkbox) {
+            if (fonte.info?.toLowerCase().includes("fase") && statoCheckbox && occorrenze > 0) occorrenze--;
+            if (fonte.info?.toLowerCase().includes("acquistato") && !statoCheckbox) occorrenze = 0;
         }
 
-        // Checkbox generici
-        if(fonte.checkbox){
-            if(fonte.info?.toLowerCase().includes("fase") && statoCheckbox && occorrenze>0) occorrenze--;
-            if(fonte.info?.toLowerCase().includes("acquistato") && !statoCheckbox) occorrenze=0;
+        let totalePrimo = Math.floor(occorrenze * fonte.primo);
+        if (nome === "Missioni Archon") {
+            const bonusArchon = Math.floor(occorrenze / 2) * 500;
+            totalePrimo += bonusArchon;
         }
 
-        let totalePrimo = occorrenze * fonte.primo;
-
-// 🔹 Bonus extra per Missioni Archon
-if (nome === "Missioni Archon") {
-    const bonusArchon = Math.floor(occorrenze / 2) * 500;
-    totalePrimo += bonusArchon;
-}
         totalePrimoGenerale += totalePrimo;
         const destini = Math.floor(totalePrimo / 160);
 
-        let checkboxHtml = fonte.checkbox ? `<input type="checkbox" id="cb_${nomeId}" ${statoCheckbox?"checked":""}>` : "";
-        if(fonte.valore){
-            checkboxHtml += `<input type="number" id="valore_${nomeId}" value="${valoreInput}" min="0" style="width:60px;" ${nome==="Missioni del mondo"?"disabled":""}>`;
-        }
-
+        let checkboxHtml = fonte.checkbox ? `<input type="checkbox" id="cb_${nomeId}" ${statoCheckbox ? "checked" : ""}>` : "";
+        let inputHtml = fonte.valore ? `<input type="number" id="valore_${nomeId}" value="${valoreInput}" min="0" style="width:60px;">` : "";
         const infoHtml = fonte.info || "";
 
         htmlTabella += `
@@ -418,7 +416,7 @@ if (nome === "Missioni Archon") {
                 <td>${occorrenze}</td>
                 <td>${totalePrimo}</td>
                 <td>${destini}</td>
-                <td>${checkboxHtml}</td>
+                <td>${checkboxHtml}${inputHtml}</td>
                 <td>${infoHtml}</td>
             </tr>
         `;
@@ -427,18 +425,17 @@ if (nome === "Missioni Archon") {
     htmlTabella += `</tbody></table>`;
     document.getElementById("risultato").innerHTML = htmlTabella;
 
-    // Salvataggio locali
     const statoCheckboxes = {};
     const valoriInputNumber = {};
     for (const [nome, fonte] of Object.entries(fontiPrimo)) {
-        const nomeId = nome.replace(/\s+/g,"_");
-        if(fonte.checkbox){
-            const cb = document.getElementById("cb_"+nomeId);
-            if(cb) statoCheckboxes["cb_"+nomeId] = cb.checked;
+        const nomeId = nome.replace(/\s+/g, "_");
+        if (fonte.checkbox) {
+            const cb = document.getElementById("cb_" + nomeId);
+            if (cb) statoCheckboxes["cb_" + nomeId] = cb.checked;
         }
-        if(fonte.valore){
-            const input = document.getElementById("valore_"+nomeId);
-            if(input) valoriInputNumber["valore_"+nomeId] = input.value;
+        if (fonte.valore) {
+            const input = document.getElementById("valore_" + nomeId);
+            if (input) valoriInputNumber["valore_" + nomeId] = input.value;
         }
     }
     localStorage.setItem("checkboxStati", JSON.stringify(statoCheckboxes));
@@ -446,40 +443,56 @@ if (nome === "Missioni Archon") {
 
     const destiniPregressi = parseInt(document.getElementById("destiniPregressi")?.value || "0");
     const pity = parseInt(document.getElementById("pity")?.value || "0");
-
-    // NUOVI INPUT
     const primoExtra = parseInt(document.getElementById("primoExtra")?.value || "0");
     const destiniExtra = parseInt(document.getElementById("destiniExtra")?.value || "0");
 
-    // salvataggio locale
     localStorage.setItem("destiniPregressi", destiniPregressi);
     localStorage.setItem("pity", pity);
     localStorage.setItem("primoExtra", primoExtra);
     localStorage.setItem("destiniExtra", destiniExtra);
 
-    // calcoli finali
-    const totalePrimoFinale = totalePrimoGenerale + primoExtra;
-    const destiniBase = Math.floor(totalePrimoFinale / 160);
-    const destiniTotali = destiniBase + destiniPregressi + pity + destiniExtra;
+    // --- Calcolo base ---
+    let totalePrimoFinale = Math.floor(totalePrimoGenerale + primoExtra);
+    let destiniBase = Math.floor(totalePrimoFinale / 160);
+    let destiniTotali = Math.floor(destiniBase + destiniPregressi + pity + destiniExtra);
+
+    // --- Caso speciale 4★ doppi ---
+    const inputDoppi = document.getElementById("valore_Personaggi_4_stelle_doppi");
+    const cbDoppi = document.getElementById("cb_Personaggi_4_stelle_doppi");
+    let extraDestiniDaDoppi = 0, extraPrimoDaDoppi = 0;
+
+    if (cbDoppi && cbDoppi.checked) {
+        const valoreInserito = parseFloat(inputDoppi?.value || "0");
+        if (valoreInserito > 0) {
+            extraDestiniDaDoppi = Math.floor(valoreInserito / 5);
+            destiniTotali += extraDestiniDaDoppi;
+        }
+        extraPrimoDaDoppi = Math.floor(destiniTotali * 6.4);
+        totalePrimoFinale += extraPrimoDaDoppi;
+    }
+
+    destiniBase = Math.floor(totalePrimoFinale / 160);
+    const destiniTotaliFinali = Math.floor(destiniBase + destiniPregressi + pity + destiniExtra + extraDestiniDaDoppi);
 
     document.getElementById("totaleGenerale").innerHTML = `
-    <p>
-    🔮 <b>Totale Primogem:</b> ${totalePrimoFinale} &nbsp;&nbsp; | 
-    <b>Destini Calcolati:</b> ${destiniBase} &nbsp;&nbsp; | 
-    <b>+ Pregressi:</b> ${destiniPregressi} &nbsp;&nbsp; | 
-    <b>+ Pity:</b> ${pity} &nbsp;&nbsp; | 
-    <b>+ Extra:</b> ${destiniExtra} &nbsp;&nbsp; ⇒ 
-    <b>Totale Finali:</b> ${destiniTotali}
-    </p>
-`;
-
+        <p>
+        🔮 <b>Totale Primogem:</b> ${Math.floor(totalePrimoFinale)} &nbsp;&nbsp; | 
+        <b>Destini Calcolati:</b> ${Math.floor(destiniBase)} &nbsp;&nbsp; | 
+        <b>+ Pregressi:</b> ${destiniPregressi} &nbsp;&nbsp; | 
+        <b>+ Pity:</b> ${pity} &nbsp;&nbsp; | 
+        <b>+ Extra:</b> ${destiniExtra} &nbsp;&nbsp; ⇒ 
+        <b>Totale Finali:</b> ${Math.floor(destiniTotaliFinali)}
+        </p>
+    `;
 
     attaccaEventListeners();
-    // Assicura che gli input extra facciano ricalcolare subito
+
     document.getElementById("primoExtra")?.addEventListener("input", aggiornaCalcolo);
     document.getElementById("destiniExtra")?.addEventListener("input", aggiornaCalcolo);
 
-    destiniTotaliGlobali = destiniTotali;
+    destiniTotaliGlobali = Math.floor(destiniTotaliFinali);
+
+    window.inCalcolo = false;
 }
 
 // =======================
@@ -566,7 +579,7 @@ function simulaPull() {
                     prossimo5050Garantito = false; // resetta il 50/50
                 } else {
                     // nuovo 50/50
-                    if (Math.random() < 0.5) {
+                    if (Math.random() < 0.375) {
                         isTarget = true;
                         armaType = "armatargetvinta";
                     } else {
@@ -844,4 +857,3 @@ function filtraArmiPerSottoclasse(start, end, stars) {
     );
     mostraArmiFiltrate(sims, `Classe ${start}-${end} - #5★ ${stars}`);
 }
-
