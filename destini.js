@@ -1,7 +1,7 @@
 // =======================
 // COSTANTI PATCH E DATE
 // =======================
-const patchInizio = new Date("2025-07-30T00:00:00"); // inizio 5.8
+const patchInizio = new Date("2026-08-12T00:00:00"); // inizio 5.8
 const durataPatch = 42; // giorni
 const msPerPatch = durataPatch * 24 * 60 * 60 * 1000;
 const numPatchPrecalcolate = 25;
@@ -52,8 +52,8 @@ window.addEventListener("load", () => {
 let tuttePatch = []; // array di oggetti {nome, inizioFase1, inizioFase2}
 
 function generaTuttePatch() {
-    let major = 5;
-    let minor = 8;
+    let major = 7;
+    let minor = 0;
     let data = new Date(patchInizio);
 
     for (let i = 0; i < numPatchPrecalcolate; i++) {
