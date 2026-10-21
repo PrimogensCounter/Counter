@@ -10,18 +10,22 @@
 
     <div id="topContainer">
         <div style="margin-bottom:1em;">
-            <div>
-  <label>📅 Data inizio:</label>
-  <input type="date" id="dataInizio" />
-</div>
+            <div style="margin-bottom: 0.5em; display: flex; align-items: center; gap: 10px;">
+                <label style="width: 100px;">📅 Inizio:</label>
+                <input type="date" id="dataInizio" onchange="aggiornaDaData('dataInizio', 'selectInizio')" />
+                <span>oppure</span>
+                <select id="selectInizio" onchange="aggiornaDaSelect('selectInizio', 'dataInizio')"></select>
+            </div>
 
-<div>
-  <label>📅 Data fine:</label>
-  <input type="date" id="dataTarget" />
-</div>
+            <div style="margin-bottom: 0.8em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <label>📅 Data fine:</label>
+                <input type="date" id="dataTarget" onchange="aggiornaDaData('dataTarget', 'selectFine')" />
+                <span>oppure</span>
+                <select id="selectFine" onchange="aggiornaDaSelect('selectFine', 'dataTarget')"></select>
+                <button type="button" onclick="impostaFineFase()" style="padding: 0.3em 0.8em; font-size: 0.85em;">Fine fase</button>
+            </div>
 
-            &nbsp;&nbsp;
-            <button onclick="aggiornaCalcolo()">Calcola</button>
+            <button onclick="aggiornaCalcolo()" style="margin-top: 0.5em;">Calcola</button>
         </div>
 
         <table id="tabellaPatch">
@@ -41,25 +45,32 @@
     <div id="riepilogoPatch" style="margin-bottom:1em;"></div>
     <div id="risultato"></div>
 
-    <div id="extraInputs" style="margin-top: 1em;">
-        <label for="destiniExtra">Destini extra:</label>
-        <input type="number" id="destiniExtra" value="0" min="0" style="width:80px;">
-        &nbsp;&nbsp;&nbsp;
-        <label for="primoExtra">Primogem extra:</label>
-        <input type="number" id="primoExtra" value="0" min="0" style="width:80px;">
-        <br>
-        <label>
-        ✨ Destini pregressi:
-        <input type="number" id="destiniPregressi" min="0" value="0" onchange="aggiornaCalcolo()" style="width: 60px;" />
-        </label>
-        &nbsp;&nbsp;&nbsp;
-        <label>
-            🎯 Pity:
-            <input type="number" id="pity" min="0" value="0" style="width: 60px;" onchange="aggiornaCalcolo()" />
-        </label>
-    </div>
+    <div id="extraInputs" style="margin-top: 1em; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; display: flex; flex-direction: column; gap: 10px;">
+        <!-- Prima riga: Destini -->
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+            <label>
+                ✨ Destini pregressi:
+                <input type="number" id="destiniPregressi" min="0" value="0" onchange="aggiornaCalcolo()" style="width: 70px;" />
+            </label>
+            <label for="destiniExtra">
+                📦 Destini extra:
+                <input type="number" id="destiniExtra" value="0" min="0" style="width: 70px;">
+            </label>
+        </div>
 
-    <div id="totaleGenerale"></div>
+        <!-- Seconda riga: Primogem e Pity -->
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+            <label for="primoExtra">
+                💎 Primogem extra:
+                <input type="number" id="primoExtra" value="0" min="0" style="width: 80px;">
+            </label>
+            <label>
+                🎯 Pity:
+                <input type="number" id="pity" min="0" value="0" style="width: 70px;" onchange="aggiornaCalcolo()" />
+            </label>
+        </div>
+    </div>
+    <div id="totaleGenerale" style="margin-top: 1em; font-size: 1.1em;"></div>
 
     <div id="simulazioneContainer" style="margin-top: 2em;">
         <h2>Simulazione Pull 5★</h2>
@@ -106,7 +117,7 @@
             const oggi = new Date();
             const formatted = oggi.toISOString().split('T')[0];
             const dataInizio = document.getElementById("dataInizio");
-            if(dataInizio) dataInizio.value = formatted;
+            if (dataInizio) dataInizio.value = formatted;
         });
     </script>
 </body>

@@ -4,13 +4,6 @@ const fontiPrimo = {
         frequenza: "daily",
         info: "10 primo per ogni missione giornaliera + 20 primo",
     },
-    "Blessing moon": {
-        primo: 90,
-        frequenza: "daily",
-        checkbox: true,
-        checkboxInclude: true,
-        info: "Spunta se acquistato"
-    },
     "Evento grande": {
         primo: 960,
         frequenza: 1,
@@ -25,19 +18,19 @@ const fontiPrimo = {
         info: "spunta se l'hai già fatto in questa fase",
         fase: [1, 2]
     },
-    "Teatro immaginario": {
+    "Imaginarium Theater": {
         primo: 1000,
         frequenza: 1,
         giornoMese: 1,
         info: "si aggiorna ogni primo del mese",
     },
-    "Abisso spirale": {
+    "Spiral Abyss": {
         primo: 800,
         frequenza: 1,
         giornoMese: 16,
         info: "si aggiorna ogni 16 del mese",
     },
-"Stygian Onslaught": {
+    "Stygian Onslaught": {
         primo: 450,
         frequenza: 1,
         fase: 1,
@@ -64,30 +57,15 @@ const fontiPrimo = {
         checkbox: true,
         info: "spunta se hai già ritirato i premi in questa fase",
     },
-    "Battle pass": {
-        primo: 660, // 680 per fase 1 e 2
-        frequenza: 1,
-        checkbox: true,
-        checkboxInclude: true,
-        info: "Spunta se acquistato",
-        fase: [1, 2],
-    },
     "Negozio Paimon": {
         primo: 800,
         frequenza: 1,
         giornoMese: 1,
         info: "Si aggiorna ogni primo del mese",
     },
-    "Accesso giornaliero": {
-        primo: 20,
-        frequenza: 1,
-        giornoMese: [7, 14, 21],
-        info: "Regalano 20 primo il giorno 7, 14 e 21 di ogni mese",
-    },
-    "Eventi web": {
-        primo: 60,
-        frequenza: 1,
-        info: "Più o meno 1 ogni fase, ma può variare",
+    "Primogem extra": {
+        primo: 0, // Il calcolo lo facciamo direttamente nel codice sommando le due fonti
+        info: "Accesso giornaliero, eventi web e altro"
     },
     "Esplorazione mondo": {
         primo: 2200,
@@ -97,7 +75,7 @@ const fontiPrimo = {
     "Missioni Archon": {
         primo: 220,
         valore: true,
-        info: "Aggiungi 1 se verranno aggiunte missioni Archon",
+        info: "Aggiungi 1 se verranno aggiunte missioni Archon (Generalmente 2 a patch)",
     },
     "Missioni del mondo": {
         primo: 200,
@@ -105,7 +83,7 @@ const fontiPrimo = {
         info: "Generalmente 1 ogni nuova mappa",
     },
     "Missioni personaggio": {
-        primo: 160,
+        primo: 60,
         valore: true,
         info: "Generalmente 1 ogni patch, ma può variare",
     },
@@ -124,5 +102,3 @@ const fontiPrimo = {
         checkbox: true,
     },
 }
-
-

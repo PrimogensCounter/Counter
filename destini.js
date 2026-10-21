@@ -1,7 +1,7 @@
 // =======================
 // COSTANTI PATCH E DATE
 // =======================
-const patchInizio = new Date("2026-08-12T00:00:00"); // inizio 5.8
+const patchInizio = new Date("2026-08-12T00:00:00"); // inizio 7.0
 const durataPatch = 42; // giorni
 const msPerPatch = durataPatch * 24 * 60 * 60 * 1000;
 const numPatchPrecalcolate = 25;
@@ -27,21 +27,60 @@ function caricaDataLocale() {
     }
 }
 
+function formatDateLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Quando selezioni una voce dal MENU A TENDINA -> aggiorna il CALENDARIO e ricalcola
+function aggiornaDaSelect(selectId, inputId) {
+    const select = document.getElementById(selectId);
+    const input = document.getElementById(inputId);
+    if (select && input && select.value) {
+        input.value = select.value;
+        aggiornaCalcolo();
+        generaTabellaPatch();
+    }
+}
+
+// Quando cambi la data dal CALENDARIO -> sincronizza il MENU A TENDINA e ricalcola
+function aggiornaDaData(inputId, selectId) {
+    const input = document.getElementById(inputId);
+    const select = document.getElementById(selectId);
+    if (input && select) {
+        select.value = input.value;
+        aggiornaCalcolo();
+        generaTabellaPatch();
+    }
+}
+
 window.addEventListener("load", () => {
-    // Data inizio = sempre oggi
     const oggi = new Date();
-    const formatted = oggi.toISOString().split('T')[0]; // formato YYYY-MM-DD
+    const formatted = formatDateLocal(oggi);
     const dataInizio = document.getElementById("dataInizio");
-    if (dataInizio) {
+    if (dataInizio && !dataInizio.value) {
         dataInizio.value = formatted;
     }
 
-    // Data fine = caricata da localStorage (se esiste)
     caricaDataLocale();
 
-    // Carica il resto
-    generaTabellaPatch();
+    generaTuttePatch();
+    popolaSelettoriFasi();
+
+    if (dataInizio) {
+        const sInizio = document.getElementById("selectInizio");
+        if (sInizio) sInizio.value = dataInizio.value;
+    }
+    const dataTarget = document.getElementById("dataTarget");
+    if (dataTarget) {
+        const sFine = document.getElementById("selectFine");
+        if (sFine) sFine.value = dataTarget.value;
+    }
+
     caricaDestiniEPityDaLocale();
+    generaTabellaPatch();
     aggiornaCalcolo();
     caricaStatiDaLocale();
 });
@@ -49,33 +88,39 @@ window.addEventListener("load", () => {
 // =======================
 // GENERA TUTTE LE PATCH PRECALCOLATE
 // =======================
-let tuttePatch = []; // array di oggetti {nome, inizioFase1, inizioFase2}
+let tuttePatch = [];
 
 function generaTuttePatch() {
     let major = 7;
     let minor = 0;
-    let data = new Date(patchInizio);
+
+    // Creiamo la data di inizio patch impostando esplicitamente anno, mese (0-indexed, quindi 7 = agosto) e giorno, evitando i fusi orari
+    let data = new Date(2026, 7, 12, 0, 0, 0); // 12 agosto 2026
 
     for (let i = 0; i < numPatchPrecalcolate; i++) {
+        let inizioF1 = new Date(data.getTime());
+
+        // La fase 2 inizia esattamente 21 giorni dopo la fase 1
+        let inizioF2 = new Date(data.getTime());
+        inizioF2.setDate(inizioF2.getDate() + 21);
+
         tuttePatch.push({
             nome: `${major}.${minor}`,
-            inizioFase1: new Date(data),
-            inizioFase2: new Date(data.getTime() + 21 * 24 * 60 * 60 * 1000)
+            inizioFase1: inizioF1,
+            inizioFase2: inizioF2
         });
 
-        // passa alla patch successiva
-        if (minor === 8) { 
+        // passa alla patch successiva (aggiungendo 42 giorni esatti)
+        if (minor === 8) {
             major += 1;
             minor = 0;
         } else {
             minor += 1;
         }
 
-        data = new Date(data.getTime() + msPerPatch);
+        data.setDate(data.getDate() + durataPatch);
     }
 }
-
-// Chiamiamo subito questa funzione all'avvio
 generaTuttePatch();
 
 // =======================
@@ -83,33 +128,38 @@ generaTuttePatch();
 // =======================
 function generaTabellaPatch() {
     const tbody = document.querySelector("#tabellaPatch tbody");
+    if (!tbody) return;
     tbody.innerHTML = "";
 
-    const oggi = new Date();
-    oggi.setHours(0,0,0,0);
+    const dataInizioInput = document.getElementById("dataInizio")?.value;
+    let riferimento = dataInizioInput ? new Date(dataInizioInput) : new Date();
+    riferimento.setHours(0, 0, 0, 0);
 
-    const idxInizio = tuttePatch.findIndex(p => oggi >= p.inizioFase1 && oggi < new Date(p.inizioFase1.getTime() + durataPatch*24*60*60*1000));
+    const idxInizio = tuttePatch.findIndex(p => {
+        const finePatch = new Date(p.inizioFase1.getTime() + durataPatch * 24 * 60 * 60 * 1000);
+        return riferimento >= p.inizioFase1 && riferimento < finePatch;
+    });
     const startIdx = idxInizio >= 0 ? idxInizio : 0;
 
-    const patchDaMostrare = tuttePatch.slice(startIdx, startIdx + 8); // mostra massimo 8 patch
+    const patchDaMostrare = tuttePatch.slice(startIdx, startIdx + 8);
 
     const rowCount = Math.ceil(patchDaMostrare.length / 4);
     const colsPerRow = 4;
 
-    // Intestazioni
     const thead = document.querySelector("#tabellaPatch thead");
-    thead.innerHTML = "";
-    const trHead = document.createElement("tr");
-    for (let i = 0; i < colsPerRow; i++) {
-        ["Patch", "Inizio Fase 1", "Inizio Fase 2"].forEach(h => {
-            const th = document.createElement("th");
-            th.textContent = h;
-            trHead.appendChild(th);
-        });
+    if (thead) {
+        thead.innerHTML = "";
+        const trHead = document.createElement("tr");
+        for (let i = 0; i < colsPerRow; i++) {
+            ["Patch", "Inizio Fase 1", "Inizio Fase 2"].forEach(h => {
+                const th = document.createElement("th");
+                th.textContent = h;
+                trHead.appendChild(th);
+            });
+        }
+        thead.appendChild(trHead);
     }
-    thead.appendChild(trHead);
 
-    // Genera righe
     for (let r = 0; r < rowCount; r++) {
         const tr = document.createElement("tr");
         for (let c = 0; c < colsPerRow; c++) {
@@ -133,6 +183,83 @@ function generaTabellaPatch() {
         }
         tbody.appendChild(tr);
     }
+}
+
+function popolaSelettoriFasi() {
+    const selectInizio = document.getElementById("selectInizio");
+    const selectFine = document.getElementById("selectFine");
+    if (!selectInizio || !selectFine) return;
+
+    selectInizio.innerHTML = '<option value="">-- Scegli fase --</option>';
+    selectFine.innerHTML = '<option value="">-- Scegli fase --</option>';
+
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+
+    // Trova l'indice della patch odierna (la stessa logica usata nella tabella)
+    const idxInizio = tuttePatch.findIndex(p => {
+        const finePatch = new Date(p.inizioFase1.getTime() + durataPatch * 24 * 60 * 60 * 1000);
+        return oggi >= p.inizioFase1 && oggi < finePatch;
+    });
+    const startIdx = idxInizio >= 0 ? idxInizio : 0;
+
+    // Mostra un blocco di patch a partire da quella attuale (es. 5 patch in totale)
+    const numPatchDaMostrare = 5;
+    const fineIdx = Math.min(startIdx + numPatchDaMostrare, tuttePatch.length);
+
+    for (let i = startIdx; i < fineIdx; i++) {
+        let p = tuttePatch[i];
+
+        let dataF1 = formatDateLocal(p.inizioFase1);
+        let dataF2 = formatDateLocal(p.inizioFase2);
+
+        let opt1 = document.createElement("option");
+        opt1.value = dataF1;
+        opt1.textContent = `Patch ${p.nome} - Fase 1`;
+        selectInizio.appendChild(opt1);
+
+        let opt2 = document.createElement("option");
+        opt2.value = dataF2;
+        opt2.textContent = `Patch ${p.nome} - Fase 2`;
+        selectInizio.appendChild(opt2);
+
+        let opt3 = document.createElement("option");
+        opt3.value = dataF1;
+        opt3.textContent = `Patch ${p.nome} - Fase 1`;
+        selectFine.appendChild(opt3);
+
+        let opt4 = document.createElement("option");
+        opt4.value = dataF2;
+        opt4.textContent = `Patch ${p.nome} - Fase 2`;
+        selectFine.appendChild(opt4);
+    }
+}
+
+// Aggiunge 20 giorni alla data di fine selezionata per coprire l'intera fase (21 giorni totali)
+function impostaFineFase() {
+    const inputFine = document.getElementById("dataTarget");
+    const selectFine = document.getElementById("selectFine");
+
+    if (!inputFine || !inputFine.value) {
+        alert("Seleziona prima una fase dal menu a tendina o una data di fine.");
+        return;
+    }
+
+    // Legge la data attualmente impostata nel campo fine
+    let d = new Date(inputFine.value);
+    d.setHours(0, 0, 0, 0);
+
+    // Sposta la data in avanti di 20 giorni (giorno 0 + 20 giorni = 21 giorni totali della fase)
+    d.setDate(d.getDate() + 20);
+
+    // Aggiorna il campo input date con la nuova formattazione locale
+    inputFine.value = formatDateLocal(d);
+
+    // Deseleziona la tendina perché ora la data punta alla fine della fase e non più all'inizio
+    if (selectFine) selectFine.value = "";
+
+    // Ricalcola tutto
+    aggiornaCalcolo();
 }
 
 // =======================
@@ -211,7 +338,7 @@ function attaccaEventListeners() {
 function conteggioPerGiornoMese(giornoDelMese, startDate, endDate) {
     let count = 0;
     let current = new Date(startDate);
-    current.setHours(0,0,0,0);
+    current.setHours(0, 0, 0, 0);
 
     while (current <= endDate) {
         if (current.getDate() === giornoDelMese) count++;
@@ -222,7 +349,7 @@ function conteggioPerGiornoMese(giornoDelMese, startDate, endDate) {
 }
 
 // =======================
-// FUNZIONE CONTA INTERVALLO PATCH/FASE
+// FUNZIONE CONTA INTERVALLO PATCH/FASE (CORRETTA)
 // =======================
 function contaIntervalloPatch(startDate, endDate) {
     const start = new Date(startDate);
@@ -230,24 +357,54 @@ function contaIntervalloPatch(startDate, endDate) {
     const end = new Date(endDate);
     end.setHours(0, 0, 0, 0);
 
-    if (end < start) return { giorniTotali: 0, patchIntere: 0, fasi1: 0, fasi2: 0 };
+    if (end < start) return { giorniTotali: 0, patchIntere: 0, fasi1: 0, fasi2: 0, giorniResidui: 0 };
 
     const giorniTotali = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
     const patchIntere = Math.floor(giorniTotali / durataPatch);
     const giorniResidui = giorniTotali % durataPatch;
 
-    // Conta quante fasi 1 e 2 sono attive nel periodo
-    let fasi1 = 0, fasi2 = 0;
+    // 1. Creiamo una lista piatta di tutte le singole fasi in ordine cronologico
+    let tutteFasi = [];
     tuttePatch.forEach(p => {
-        if (!(end < p.inizioFase1 || start > new Date(p.inizioFase1.getTime() + 20 * 24 * 60 * 60 * 1000))) fasi1++;
-        if (!(end < p.inizioFase2 || start > new Date(p.inizioFase2.getTime() + 20 * 24 * 60 * 60 * 1000))) fasi2++;
+        let f1 = new Date(p.inizioFase1); f1.setHours(0, 0, 0, 0);
+        let f2 = new Date(p.inizioFase2); f2.setHours(0, 0, 0, 0);
+        tutteFasi.push({ tipo: 1, data: f1 });
+        tutteFasi.push({ tipo: 2, data: f2 });
     });
+
+    // 2. Troviamo l'indice della fase di inizio (l'ultima fase iniziata prima o lo stesso giorno di 'start')
+    let startIndex = 0;
+    for (let i = 0; i < tutteFasi.length; i++) {
+        if (tutteFasi[i].data <= start) {
+            startIndex = i;
+        } else {
+            break;
+        }
+    }
+
+    // 3. Troviamo l'indice della fase di fine (l'ultima fase iniziata prima o lo stesso giorno di 'end')
+    let endIndex = startIndex;
+    for (let i = startIndex; i < tutteFasi.length; i++) {
+        if (tutteFasi[i].data <= end) {
+            endIndex = i;
+        } else {
+            break;
+        }
+    }
+
+    // 4. Contiamo semplicemente quante Fasi 1 e Fasi 2 ci sono in quell'intervallo di indici!
+    let fasi1 = 0;
+    let fasi2 = 0;
+    for (let i = startIndex; i <= endIndex; i++) {
+        if (tutteFasi[i].tipo === 1) fasi1++;
+        if (tutteFasi[i].tipo === 2) fasi2++;
+    }
 
     return { giorniTotali, patchIntere, fasi1, fasi2, giorniResidui };
 }
 
 // =======================
-// FUNZIONE AGGIORNA CALCOLO (AGGIORNATA)
+// FUNZIONE AGGIORNA CALCOLO
 // =======================
 function aggiornaCalcolo() {
     if (window.inCalcolo) return;
@@ -306,20 +463,6 @@ function aggiornaCalcolo() {
             <tbody>
     `;
 
-    // Date fase 1
-    const dateFasi1 = [];
-    for (let i = 0; i <= patchIntere; i++) {
-        const giornoFase1 = new Date(tuttePatch[0].inizioFase1.getTime() + i * msPerPatch);
-        giornoFase1.setHours(0, 0, 0, 0);
-        if (giornoFase1 <= dataFine) dateFasi1.push(giornoFase1);
-    }
-
-    const eventoUltimoAttivo = dateFasi1.filter(dataFase1 => {
-        const fineValidita = new Date(dataFase1.getTime() + 7 * 24 * 60 * 60 * 1000);
-        return dataInizio < fineValidita;
-    }).length;
-
-    // --- Ciclo fonti ---
     for (const [nome, fonte] of Object.entries(fontiPrimo)) {
         const nomeId = nome.replace(/\s+/g, "_");
         let statoCheckbox = fonte.checkbox ? (statoCheckboxesSalvati["cb_" + nomeId] ?? !!fonte.checkboxInclude) : false;
@@ -345,29 +488,32 @@ function aggiornaCalcolo() {
                 <tr>
                     <td>${nome}</td>
                     <td>-</td>
-                    <td>${occorrenze}</td>
-                    <td>${totalePrimo}</td>
+                    <td>-</td>
+                    <td>-</td>
                     <td>${destini}</td>
-                    <td>${checkboxHtml}</td>
-                    <td>${inputHtml} ${infoHtml}</td>
+                    <td>${checkboxHtml} ${inputHtml}</td>
+                    <td>${infoHtml}</td>
                 </tr>
             `;
             continue;
         }
 
         if (nome === "Personaggi 4 stelle doppi") {
-            const occorrenze = 0, totalePrimo = 0, destini = 0;
+            const valoreStarglitter = parseFloat(valoreInput) || 0;
+            const destiniInizialiStarglitter = statoCheckbox ? Math.floor(valoreStarglitter / 5) : 0;
+
             let checkboxHtml = fonte.checkbox ? `<input type="checkbox" id="cb_${nomeId}" ${statoCheckbox ? "checked" : ""}>` : "";
             let inputHtml = fonte.valore ? `<input type="number" id="valore_${nomeId}" value="${valoreInput}" min="0" style="width:60px;">` : "";
             const infoHtml = fonte.info || "";
+
             htmlTabella += `
                 <tr>
                     <td>${nome}</td>
-                    <td>${fonte.primo}</td>
-                    <td>${occorrenze}</td>
-                    <td>${totalePrimo}</td>
-                    <td>${destini}</td>
-                    <td>${checkboxHtml}${inputHtml}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>${destiniInizialiStarglitter}</td>
+                    <td>${checkboxHtml} ${inputHtml}</td>
                     <td>${infoHtml}</td>
                 </tr>
             `;
@@ -375,7 +521,45 @@ function aggiornaCalcolo() {
         }
 
         let occorrenze = 0;
-        if (fonte.valore) {
+        let totalePrimo = 0;
+
+        if (nome === "Primogem extra") {
+            // 1. Accesso giornaliero: 20 primo nei giorni 7, 14 e 21 di ogni mese
+            const occorrenzeAccesso = Array.isArray([7, 14, 21])
+                ? [7, 14, 21].reduce((sum, g) => sum + conteggioPerGiornoMese(g, dataInizio, dataFine), 0)
+                : conteggioPerGiornoMese(7, dataInizio, dataFine);
+            const primoAccesso = occorrenzeAccesso * 20;
+
+            // 2. Eventi web: basati sulle patch intere (come deciso)
+            const occorrenzeEventiWeb = patchIntere;
+            const primoEventiWeb = occorrenzeEventiWeb * 60;
+
+            // 3. Extra giornaliero: 1 primogem per ogni giorno totale di simulazione
+            const primoGiorniSimulazione = giorniTotali * 1;
+
+            // Somma totale delle Primogem per questa voce
+            totalePrimo = primoAccesso + primoEventiWeb + primoGiorniSimulazione;
+
+            // Per le occorrenze totali sommiamo tutto o lasciamo un valore indicativo complessivo
+            occorrenze = occorrenzeAccesso + occorrenzeEventiWeb + giorniTotali;
+
+            totalePrimoGenerale += totalePrimo;
+            const destini = Math.floor(totalePrimo / 160);
+            const infoHtml = fonte.info || "";
+
+            htmlTabella += `
+                <tr>
+                    <td>${nome}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>${totalePrimo}</td>
+                    <td>${destini}</td>
+                    <td>-</td>
+                    <td>${infoHtml}</td>
+                </tr>
+            `;
+            continue;
+        } else if (fonte.valore) {
             occorrenze = parseInt(valoreInput) || 0;
         } else if (fonte.frequenza === "daily") {
             occorrenze = giorniTotali;
@@ -396,7 +580,7 @@ function aggiornaCalcolo() {
             if (fonte.info?.toLowerCase().includes("acquistato") && !statoCheckbox) occorrenze = 0;
         }
 
-        let totalePrimo = Math.floor(occorrenze * fonte.primo);
+        totalePrimo = Math.floor(occorrenze * fonte.primo);
         if (nome === "Missioni Archon") {
             const bonusArchon = Math.floor(occorrenze / 2) * 500;
             totalePrimo += bonusArchon;
@@ -451,38 +635,68 @@ function aggiornaCalcolo() {
     localStorage.setItem("primoExtra", primoExtra);
     localStorage.setItem("destiniExtra", destiniExtra);
 
-    // --- Calcolo base ---
-    let totalePrimoFinale = Math.floor(totalePrimoGenerale + primoExtra);
-    let destiniBase = Math.floor(totalePrimoFinale / 160);
-    let destiniTotali = Math.floor(destiniBase + destiniPregressi + pity + destiniExtra);
+    // 1. Base F2P: tutto ciò che è stato calcolato finora nella tabella + primogem extra manuali
+    let primoF2P = totalePrimoGenerale + primoExtra;
 
-    // --- Caso speciale 4★ doppi ---
+    // 2. Calcolo automatico del valore del Welkin Moon per il periodo selezionato
+    // 90 primogem al giorno per ogni giorno totale della simulazione
+    let primoWelkinExtra = giorniTotali * 90;
+
+    // 3. Calcolo automatico del valore del Battle Pass per il periodo selezionato
+    // 660 primogem per ogni patch intera (o basato sulle fasi, es. 660 a patch)
+    let occorrenzeBp = patchIntere + (giorniResidui > 0 ? 1 : 0);
+    let primoBPExtra = occorrenzeBp * 660;
+
+    // I 3 totali di Primogem combinati
+    let primoWelkin = primoF2P + primoWelkinExtra;
+    let primoFull = primoF2P + primoWelkinExtra + primoBPExtra;
+
+    // Gestione personaggi 4 stelle doppi con la tua formula esatta
     const inputDoppi = document.getElementById("valore_Personaggi_4_stelle_doppi");
     const cbDoppi = document.getElementById("cb_Personaggi_4_stelle_doppi");
-    let extraDestiniDaDoppi = 0, extraPrimoDaDoppi = 0;
+
+    let destiniExtraTotali = destiniPregressi + destiniExtra + Math.floor(primoExtra / 160);
+
+    // Destini simulati base per i 3 profili (senza ancora considerare lo Starglitter del box né i 4* doppi)
+    let destiniSimulatiF2P = Math.floor(primoF2P / 160) + destiniExtraTotali + pity;
+    let destiniSimulatiWelkin = Math.floor(primoWelkin / 160) + destiniExtraTotali + pity;
+    let destiniSimulatiFull = Math.floor(primoFull / 160) + destiniExtraTotali + pity;
+
+    let destiniF2P = destiniSimulatiF2P;
+    let destiniWelkin = destiniSimulatiWelkin;
+    let destiniFull = destiniSimulatiFull;
 
     if (cbDoppi && cbDoppi.checked) {
         const valoreInserito = parseFloat(inputDoppi?.value || "0");
         if (valoreInserito > 0) {
-            extraDestiniDaDoppi = Math.floor(valoreInserito / 5);
-            destiniTotali += extraDestiniDaDoppi;
+            // 1. Destini da starglitter (numero nel box / 5)
+            const destiniDaStarglitter = Math.floor(valoreInserito / 5);
+
+            // Funzione di supporto che applica i passaggi esatti del tuo esempio
+            function applicaCalcoloDoppi(destiniSimulati) {
+                // Destini da convertire = destini simulati + destini da starglitter
+                const destiniDaConvertire = destiniSimulati + destiniDaStarglitter;
+
+                // Destini da 4* doppi = Math.floor((destini da convertire * 6.4) / 160)
+                const destiniDaDoppi = Math.floor((destiniDaConvertire * 6.4) / 160);
+
+                // Totale finale = destini da convertire + destini da 4* doppi
+                return destiniDaConvertire + destiniDaDoppi;
+            }
+
+            destiniF2P = applicaCalcoloDoppi(destiniSimulatiF2P);
+            destiniWelkin = applicaCalcoloDoppi(destiniSimulatiWelkin);
+            destiniFull = applicaCalcoloDoppi(destiniSimulatiFull);
         }
-        extraPrimoDaDoppi = Math.floor(destiniTotali * 6.4);
-        totalePrimoFinale += extraPrimoDaDoppi;
     }
 
-    destiniBase = Math.floor(totalePrimoFinale / 160);
-    const destiniTotaliFinali = Math.floor(destiniBase + destiniPregressi + pity + destiniExtra + extraDestiniDaDoppi);
-
+    // Stampa a schermo dei tre totali
     document.getElementById("totaleGenerale").innerHTML = `
-        <p>
-        🔮 <b>Totale Primogem:</b> ${Math.floor(totalePrimoFinale)} &nbsp;&nbsp; | 
-        <b>Destini Calcolati:</b> ${Math.floor(destiniBase)} &nbsp;&nbsp; | 
-        <b>+ Pregressi:</b> ${destiniPregressi} &nbsp;&nbsp; | 
-        <b>+ Pity:</b> ${pity} &nbsp;&nbsp; | 
-        <b>+ Extra:</b> ${destiniExtra} &nbsp;&nbsp; ⇒ 
-        <b>Totale Finali:</b> ${Math.floor(destiniTotaliFinali)}
-        </p>
+        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 10px;">
+            <p style="margin: 6px 0;">🌱 <b>TOTALE DESTINI F2P:</b> <span style="color: #4ade80; font-size: 1.15em;">${Math.floor(destiniF2P)}</span></p>
+            <p style="margin: 6px 0;">🌙 <b>TOTALE DESTINI WELKIN MOON:</b> <span style="color: #60a5fa; font-size: 1.15em;">${Math.floor(destiniWelkin)}</span></p>
+            <p style="margin: 6px 0;">⚔️ <b>TOTALE DESTINI WM + BP:</b> <span style="color: #c084fc; font-size: 1.15em;">${Math.floor(destiniFull)}</span></p>
+        </div>
     `;
 
     attaccaEventListeners();
@@ -490,10 +704,15 @@ function aggiornaCalcolo() {
     document.getElementById("primoExtra")?.addEventListener("input", aggiornaCalcolo);
     document.getElementById("destiniExtra")?.addEventListener("input", aggiornaCalcolo);
 
-    destiniTotaliGlobali = Math.floor(destiniTotaliFinali);
+    destiniTotaliGlobali = Math.floor(destiniWelkin);
 
     window.inCalcolo = false;
 }
+
+// =======================
+// Variabile globale per salvare i risultati dell’ultima simulazione
+// =======================
+window.simResultsGlobal = [];
 
 // =======================
 // Variabile globale per salvare i risultati dell’ultima simulazione
