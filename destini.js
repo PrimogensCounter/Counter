@@ -143,8 +143,9 @@ function generaTabellaPatch() {
 
     const patchDaMostrare = tuttePatch.slice(startIdx, startIdx + 8);
 
-    const rowCount = Math.ceil(patchDaMostrare.length / 4);
-    const colsPerRow = 4;
+    // --- MODIFICA QUI: 2 patch per riga -> genera 4 righe verticali ---
+    const colsPerRow = 2;
+    const rowCount = Math.ceil(patchDaMostrare.length / colsPerRow);
 
     const thead = document.querySelector("#tabellaPatch thead");
     if (thead) {

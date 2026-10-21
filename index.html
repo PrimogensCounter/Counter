@@ -9,23 +9,21 @@
     <h1>Calcolatore Primogems</h1>
 
     <div id="topContainer">
-        <div style="margin-bottom:1em;">
-            <div style="margin-bottom: 0.5em; display: flex; align-items: center; gap: 10px;">
-                <label style="width: 100px;">📅 Inizio:</label>
+        <div class="date-section">
+            <div class="control-group">
+                <label for="dataInizio">📅 Inizio:</label>
                 <input type="date" id="dataInizio" onchange="aggiornaDaData('dataInizio', 'selectInizio')" />
-                <span>oppure</span>
+                <span class="divider-text">oppure</span>
                 <select id="selectInizio" onchange="aggiornaDaSelect('selectInizio', 'dataInizio')"></select>
             </div>
 
-            <div style="margin-bottom: 0.8em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <label>📅 Data fine:</label>
+            <div class="control-group">
+                <label for="dataTarget">📅 Data fine:</label>
                 <input type="date" id="dataTarget" onchange="aggiornaDaData('dataTarget', 'selectFine')" />
-                <span>oppure</span>
+                <span class="divider-text">oppure</span>
                 <select id="selectFine" onchange="aggiornaDaSelect('selectFine', 'dataTarget')"></select>
-                <button type="button" onclick="impostaFineFase()" style="padding: 0.3em 0.8em; font-size: 0.85em;">Fine fase</button>
+                <button type="button" class="btn-subtle" onclick="impostaFineFase()">Fine fase</button>
             </div>
-
-            <button onclick="aggiornaCalcolo()" style="margin-top: 0.5em;">Calcola</button>
         </div>
 
         <table id="tabellaPatch">
@@ -42,77 +40,80 @@
         </table>
     </div>
 
-    <div id="riepilogoPatch" style="margin-bottom:1em;"></div>
+    <div id="riepilogoPatch"></div>
     <div id="risultato"></div>
 
-    <div id="extraInputs" style="margin-top: 1em; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; display: flex; flex-direction: column; gap: 10px;">
-        <!-- Prima riga: Destini -->
-        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
-            <label>
-                ✨ Destini pregressi:
-                <input type="number" id="destiniPregressi" min="0" value="0" onchange="aggiornaCalcolo()" style="width: 70px;" />
-            </label>
-            <label for="destiniExtra">
-                📦 Destini extra:
-                <input type="number" id="destiniExtra" value="0" min="0" style="width: 70px;">
-            </label>
-        </div>
-
-        <!-- Seconda riga: Primogem e Pity -->
-        <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
-            <label for="primoExtra">
-                💎 Primogem extra:
-                <input type="number" id="primoExtra" value="0" min="0" style="width: 80px;">
-            </label>
-            <label>
-                🎯 Pity:
-                <input type="number" id="pity" min="0" value="0" style="width: 70px;" onchange="aggiornaCalcolo()" />
-            </label>
+    <div id="extraInputs">
+        <div>
+            <div class="inputs-row">
+                <label for="destiniPregressi">
+                    ✨ Destini pregressi:
+                    <input type="number" id="destiniPregressi" min="0" value="0" onchange="aggiornaCalcolo()" />
+                </label>
+                <label for="destiniExtra">
+                    📦 Destini extra:
+                    <input type="number" id="destiniExtra" value="0" min="0" onchange="aggiornaCalcolo()" />
+                </label>
+            </div>
+            <div>
+                <label for="primoExtra">
+                    💎 Primogem extra:
+                    <input type="number" id="primoExtra" value="0" min="0" onchange="aggiornaCalcolo()" />
+                </label>
+                <label for="pity">
+                    🎯 Pity:
+                    <input type="number" id="pity" min="0" value="0" onchange="aggiornaCalcolo()" />
+                </label>
+            </div>
         </div>
     </div>
-    <div id="totaleGenerale" style="margin-top: 1em; font-size: 1.1em;"></div>
 
-    <div id="simulazioneContainer" style="margin-top: 2em;">
+    <div id="totaleGenerale"></div>
+
+    <div id="simulazioneContainer">
         <h2>Simulazione Pull 5★</h2>
 
-        <label>
-            🎯 Personaggi desiderati:
-            <input type="number" id="simPersonaggi" value="0" min="0" style="width:60px;" />
-        </label>
-        &nbsp;&nbsp;
-        <label>
-            ⚔️ Armi desiderate:
-            <input type="number" id="simArmi" value="0" min="0" style="width:60px;" />
-        </label>
-        &nbsp;&nbsp;
-        <label>
-            🔁 Numero simulazioni:
-            <input type="number" id="numSim" value="1000" min="100" step="100" style="width:80px;" />
-        </label>
-        &nbsp;&nbsp;
-        <label>
-            <input type="checkbox" id="primoGarantito" />
-            🎯 Personaggio garantito
-        </label>
-        &nbsp;&nbsp;
-        <button onclick="simulaPull()">Simula</button>
+        <div class="sim-controls">
+            <div>
+                <label for="simPersonaggi">
+                    🎯 Personaggi desiderati:
+                    <input type="number" id="simPersonaggi" value="0" min="0" />
+                </label>
+
+                <label for="simArmi">
+                    ⚔️ Armi desiderate:
+                    <input type="number" id="simArmi" value="0" min="0" />
+                </label>
+            </div>
+            <div>
+                <label for="numSim">
+                    🔁 Numero simulazioni:
+                    <input type="number" id="numSim" value="1000" min="100" step="100" />
+                </label>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="primoGarantito" />
+                    🎯 Personaggio garantito
+                </label>
+            </div>
+                <button type="button" onclick="simulaPull()">Simula</button>
+        </div>
 
         <!-- Risultati generali -->
-        <div id="risultatoPersonaggi" style="margin-top:1em;"></div>
-        <div id="risultatoArmi" style="margin-top:1em;"></div>
+        <div id="risultatoPersonaggi"></div>
+        <div id="risultatoArmi"></div>
 
         <!-- Tabella classi interattiva -->
-        <div id="analisiDestini5Star" style="margin-top:1em;"></div>
+        <div id="analisiDestini5Star"></div>
 
         <!-- Dettaglio armi filtrate -->
-        <div id="analisiArmiFiltrate" style="margin-top:1em;"></div>
+        <div id="analisiArmiFiltrate"></div>
     </div>
 
     <script src="fontiPrimo.js"></script>
     <script src="destini.js"></script>
 
     <script>
-        // Imposta automaticamente la data odierna su "dataInizio"
         window.addEventListener("load", () => {
             const oggi = new Date();
             const formatted = oggi.toISOString().split('T')[0];
