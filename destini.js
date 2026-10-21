@@ -453,12 +453,12 @@ function aggiornaCalcolo() {
             <thead>
                 <tr>
                     <th>Fonte</th>
-                    <th>Primogem unitario</th>
-                    <th>Occorrenze</th>
-                    <th>Totale Primogem</th>
+                    <th>Primogems</th>
+                    <th>#</th>
+                    <th>Primo TOT</th>
                     <th>Destini</th>
                     <th>Input</th>
-                    <th>Info</th>
+                    <th>Informazioni</th>
                 </tr>
             </thead>
             <tbody>
